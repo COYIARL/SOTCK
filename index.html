@@ -13,8 +13,8 @@
         "background_color": "#ffffff",
         "theme_color": "#f8f9fa",
         "icons": [
-            { "src": "TU_LINK_AQUI.png", "sizes": "192x192", "type": "image/png" },
-            { "src": "TU_LINK_AQUI.png", "sizes": "512x512", "type": "image/png" }
+            { "src": "./icono.jpeg", "sizes": "192x192", "type": "image/jpeg" },
+            { "src": "./icono.jpeg", "sizes": "512x512", "type": "image/jpeg" }
         ]
     }'>
     <style>
@@ -32,6 +32,7 @@
             margin: 0;
             background-color: var(--bg);
             color: var(--text);
+            overflow-x: hidden;
         }
 
         nav {
@@ -72,7 +73,7 @@
 
         .container {
             padding: 20px 5%;
-            overflow-x: auto;
+            width: 100%;
         }
 
         table {
@@ -82,23 +83,31 @@
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            table-layout: fixed;
         }
 
         th {
             background-color: #f8f9fa;
             color: var(--primary);
             text-align: left;
-            padding: 15px;
+            padding: 10px;
             border-bottom: 2px solid #eee;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             letter-spacing: 1px;
         }
 
+        th:nth-child(1), td:nth-child(1) { width: 25%; }
+        th:nth-child(2), td:nth-child(2) { width: 45%; }
+        th:nth-child(3), td:nth-child(3) { width: 15%; }
+        th:nth-child(4), td:nth-child(4) { width: 15%; }
+
         td {
-            padding: 12px 15px;
+            padding: 12px 10px;
             border-bottom: 1px solid #eee;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
+            white-space: normal;
+            word-break: break-word;
         }
 
         tr:hover {
@@ -115,12 +124,11 @@
         }
 
         @media (max-width: 600px) {
-            th:nth-child(3), td:nth-child(3) { display: none; }
-            td { font-size: 0.85rem; }
+            td { font-size: 0.75rem; padding: 10px 6px; }
+            th { font-size: 0.7rem; padding: 10px 6px; }
             nav h1 { font-size: 1.2rem; }
         }
 
-        /* Estilo Botón PWA */
         .install-btn {
             display: none;
             background: var(--accent);
@@ -173,7 +181,7 @@
         for (let i = 1; i < tr.length; i++) {
             let match = false;
             const tds = tr[i].getElementsByTagName("td");
-            for(let j = 0; j < 2; j++) { // Solo busca en Modelo y Descripción
+            for(let j = 0; j < 2; j++) {
                 if (tds[j]) {
                     if (tds[j].textContent.toUpperCase().indexOf(filter) > -1) {
                         match = true;
@@ -185,17 +193,16 @@
         }
     }
 
-    // Lógica PWA con soporte 100% Offline (Cache-First)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             const blob = new Blob([`
                 const CACHE_NAME = 'catalogo-v1';
                 const ASSETS = [
-                    './',
-                    './index.html'
+                    location.pathname,
+                    location.pathname + 'index.html',
+                    location.pathname + 'icono.jpeg'
                 ];
 
-                // Instalar y guardar en caché la propia página
                 self.addEventListener('install', (e) => {
                     e.waitUntil(
                         caches.open(CACHE_NAME).then((cache) => {
@@ -204,7 +211,6 @@
                     );
                 });
 
-                // Activar y limpiar cachés antiguas
                 self.addEventListener('activate', (e) => {
                     e.waitUntil(
                         caches.keys().then((keys) => {
@@ -219,7 +225,6 @@
                     );
                 });
 
-                // Responder desde la caché si no hay internet
                 self.addEventListener('fetch', (e) => {
                     e.respondWith(
                         caches.match(e.request).then((cachedResponse) => {
@@ -227,10 +232,9 @@
                                 return cachedResponse;
                             }
                             return fetch(e.request).then((response) => {
-                                // Guardar dinámicamente nuevas peticiones si es necesario
                                 return response;
                             }).catch(() => {
-                                // Fallback si falla todo
+                                // Fallback
                             });
                         })
                     );
@@ -265,5 +269,7 @@
     });
 </script>
 
+</body>
+</html>
 </body>
 </html>
