@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Añadir Producto</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+            --success: #27ae60;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; background-color: var(--bg); padding: 20px; }
+        .add-container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { margin-top: 0; color: var(--primary); text-transform: uppercase; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.3rem; }
+        .form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
+        .form-group label { font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: var(--primary); }
+        .form-group input { padding: 11px; border: 1px solid #ddd; border-radius: 5px; outline: none; }
+        .btn-submit { background-color: var(--success); color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-back { display: block; text-align: center; margin-top: 15px; color: #7f8c8d; text-decoration: none; }
+        .toast-popup { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); background-color: #2ecc71; color: white; padding: 15px 35px; border-radius: 30px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-weight: bold; transition: top 0.4s; z-index: 2500; }
+        .toast-popup.show { top: 30px; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+<div id="successToast" class="toast-popup">¡Registro Sincronizado en la Nube! 🎉</div>
+
+<div class="add-container">
+    <h2>Añadir Nuevo Producto</h2>
+    <div class="form-group">
+        <label>Modelo</label>
+        <input type="text" id="newModelo" placeholder="Ej. GS402BB">
+    </div>
+    <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" id="newDescripcion" placeholder="Ej. STAND MINI GUIT ELECTRICA">
+    </div>
+    <div class="form-group">
+        <label>Monto USD ($)</label>
+        <input type="number" id="newUsd" step="0.01" placeholder="0.00" oninput="calcularCampos('usd')">
+    </div>
+    <div class="form-group">
+        <label>Monto PEN (S/.)</label>
+        <input type="number" id="newPen" step="0.01" placeholder="0.00" oninput="calcularCampos('pen')">
+    </div>
+    <button class="btn-submit" onclick="agregarProducto()">Guardar Producto</button>
+    <a href="index.html" class="btn-back">Volver al Inventario</a>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDoBKRSLB2si9FRDYyhpCjGdmb__d_0W5E",
+        authDomain: "stock-adonay.firebaseapp.com",
+        databaseURL: "https://stock-adonay-default-rtdb.firebaseio.com",
+        projectId: "stock-adonay",
+        storageBucket: "stock-adonay.appspot.com",
+        messagingSenderId: "368941508184",
+        appId: "1:368941508184:web:50f8dde313049ef6384c2d"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database().ref("productos");
+    const TIPO_CAMBIO = 3.75;
+
+    function calcularCampos(origen) {
+        const inputUsd = document.getElementById("newUsd");
+        const inputPen = document.getElementById("newPen");
+        if (origen === 'usd' && inputUsd.value !== "") inputPen.value = (parseFloat(inputUsd.value) * TIPO_CAMBIO).toFixed(2);
+        else if (origen === 'pen' && inputPen.value !== "") inputUsd.value = (parseFloat(inputPen.value) / TIPO_CAMBIO).toFixed(2);
+    }
+
+    function agregarProducto() {
+        const modelo = document.getElementById("newModelo").value.trim();
+        const descripcion = document.getElementById("newDescripcion").value.trim();
+        const usd = document.getElementById("newUsd").value.trim();
+        const pen = document.getElementById("newPen").value.trim();
+
+        if (modelo === "" || descripcion === "") { alert("Modelo y Descripción son obligatorios."); return; }
+
+        db.push({
+            modelo: modelo.toUpperCase(),
+            descripcion: descripcion.toUpperCase(),
+            usd: usd ? parseFloat(usd).toFixed(2) : "0.00",
+            pen: pen ? parseFloat(pen).toFixed(2) : "0.00"
+        });
+
+        document.getElementById("successToast").classList.add("show");
+        setTimeout(() => { window.location.href = "index.html"; }, 1500);
+    }
+</script>
+</body>
+</html>
