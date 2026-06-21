@@ -2,7 +2,7 @@
     "name": "STOCK ADONAY",
     "short_name": "StockAdonay",
     "start_url": "/stock-adonay/index.html",
-    "scope": "/stock-adonay/",
+    "scope": "/SOTCK/",
     "display": "standalone",
     "display_override": [
         "standalone",
