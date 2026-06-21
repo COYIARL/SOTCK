@@ -1,7 +1,7 @@
 {
     "name": "STOCK ADONAY",
     "short_name": "StockAdonay",
-    "start_url": "/stock-adonay/index.html",
+    "start_url": "/SOTCK/index.html",
     "scope": "/SOTCK/",
     "display": "standalone",
     "display_override": [
