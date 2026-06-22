@@ -150,6 +150,7 @@
             color: var(--accent);
             cursor: pointer;
             font-size: 14px;
+            text-decoration: none;
         }
 
         @media (max-width: 600px) {
@@ -194,7 +195,7 @@
         .modal-content input:focus { border-color: var(--accent); }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-save { background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-close { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-close { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; text-decoration: none; text-align: center; }
 
         .toast-success {
             position: fixed;
@@ -217,7 +218,7 @@
 </head>
 <body>
 
-<div id="actionToast" class="toast-success">¡Cambios guardados con éxito en la nube! 🌍</div>
+<div id="actionToast" class="toast-success">CAMBIO GUARDADO</div>
 
 <nav>
     <h1>STOCK ADONAY</h1>
@@ -268,7 +269,7 @@
             <input type="number" id="editPen" step="0.01" placeholder="0.00" oninput="calcularEdicion('pen')">
         </div>
         <div class="modal-actions">
-            <button class="btn-close" onclick="cerrarModal()">Cancelar</button>
+            <a href="index.html" class="btn-close" onclick="cerrarModal(event)">Cancelar</a>
             <button class="btn-save" onclick="guardarEdicion()">Guardar</button>
         </div>
     </div>
@@ -288,11 +289,13 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database().ref("productos");
     const TIPO_CAMBIO = 3.75;
+    let cacheProductos = {};
 
     db.on("value", (snapshot) => {
         const tbody = document.getElementById("tableBody");
         tbody.innerHTML = "";
         const data = snapshot.val();
+        cacheProductos = data || {};
         
         if (data) {
             Object.keys(data).forEach((key) => {
@@ -304,13 +307,29 @@
                     <td class="monto-usd">${prod.usd}</td>
                     <td class="monto-pen">${prod.pen}</td>
                     <td style="text-align: center;">
-                        <button class="btn-edit" onclick="abrirModal('${key}', '${prod.modelo}', '${prod.descripcion}', '${prod.usd}', '${prod.pen}')">📝</button>
+                        <a href="index.html?edit=${key}" class="btn-edit" onclick="abrirModal(event, '${key}')">📝</a>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
+        // Comprobar si hay una solicitud de edición activa en la URL al cargar
+        verificarUrlEdicion();
     });
+
+    function verificarUrlEdicion() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const editKey = urlParams.get('edit');
+        if (editKey && cacheProductos[editKey]) {
+            const prod = cacheProductos[editKey];
+            document.getElementById("editKey").value = editKey;
+            document.getElementById("editModelo").value = prod.modelo;
+            document.getElementById("editDescripcion").value = prod.descripcion;
+            document.getElementById("editUsd").value = prod.usd;
+            document.getElementById("editPen").value = prod.pen;
+            document.getElementById("editModal").style.display = "flex";
+        }
+    }
 
     function filterTable() {
         const input = document.getElementById("searchInput");
@@ -333,17 +352,24 @@
         }
     }
 
-    function abrirModal(key, modelo, descripcion, usd, pen) {
-        document.getElementById("editKey").value = key;
-        document.getElementById("editModelo").value = modelo;
-        document.getElementById("editDescripcion").value = descripcion;
-        document.getElementById("editUsd").value = usd;
-        document.getElementById("editPen").value = pen;
-        document.getElementById("editModal").style.display = "flex";
+    function abrirModal(event, key) {
+        event.preventDefault();
+        history.pushState(null, "", "index.html?edit=" + key);
+        const prod = cacheProductos[key];
+        if (prod) {
+            document.getElementById("editKey").value = key;
+            document.getElementById("editModelo").value = prod.modelo;
+            document.getElementById("editDescripcion").value = prod.descripcion;
+            document.getElementById("editUsd").value = prod.usd;
+            document.getElementById("editPen").value = prod.pen;
+            document.getElementById("editModal").style.display = "flex";
+        }
     }
 
-    function cerrarModal() {
+    function cerrarModal(event) {
+        if(event) event.preventDefault();
         document.getElementById("editModal").style.display = "none";
+        history.pushState(null, "", "index.html");
     }
 
     function calcularEdicion(origen) {
@@ -401,6 +427,15 @@
                 }
                 deferredPrompt = null;
             });
+        }
+    });
+    
+    window.addEventListener('popstate', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (!urlParams.get('edit')) {
+            document.getElementById("editModal").style.display = "none";
+        } else {
+            verificarUrlEdicion();
         }
     });
 </script>
